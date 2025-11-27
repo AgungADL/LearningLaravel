@@ -2,10 +2,12 @@
 
 namespace App\Livewire\Admin;
 
+use App\Exports\StockMovementWeeklyExport;
 use App\Models\Product;
 use Carbon\Carbon;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
 
 class StockReportManager extends Component
 {
@@ -79,71 +81,15 @@ class StockReportManager extends Component
 
     public function exportToExcel()
     {
-        $query = Product::with('category');
-
-        if ($this->search) {
-            $query->where('name', 'like', '%' . $this->search . '%');
-        }
-
-        if ($this->lowStock) {
-            $query->where('stock', '<', 10);
-        }
-
-        $data = $query->get();
-
-        // Hitung pergerakan stok per minggu
-        foreach ($data as $product) {
-            $movements = $product->stockMovements()
-                ->whereBetween('created_at', [$this->weekStartDate, $this->weekEndDate])
-                ->get();
-
-            $in = 0;
-            $out = 0;
-
-            foreach ($movements as $movement) {
-                if ($movement->quantity > 0) {
-                    $in += $movement->quantity;
-                } else {
-                    $out += abs($movement->quantity);
-                }
-            }
-
-            $netChange = $in - $out;
-            $stockStart = $product->stock - $netChange;
-
-            $product->stock_summary = [
-                'stock_start' => $stockStart,
-                'total_in' => $in,
-                'total_out' => $out,
-                'stock_end' => $product->stock,
-            ];
-        }
-
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="laporan_pergerakan_stok_mingguan_' . time() . '.csv"',
-        ];
-
-        $callback = function() use ($data) {
-            $file = fopen('php://output', 'w');
-            fputcsv($file, ['Nama Produk', 'Kategori', 'Satuan', 'Stok Awal', 'Total Restock (IN)', 'Total Pengurangan (OUT)', 'Stok Akhir']);
-
-            foreach ($data as $row) {
-                $summary = $row->stock_summary;
-                fputcsv($file, [
-                    $row->name,
-                    $row->category->name ?? '-',
-                    'Pcs',
-                    $summary['stock_start'],
-                    $summary['total_in'],
-                    $summary['total_out'],
-                    $summary['stock_end'],
-                ]);
-            }
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        return Excel::download(
+            new StockMovementWeeklyExport(
+                $this->weekStartDate,
+                $this->weekEndDate,
+                $this->search,
+                $this->lowStock
+            ),
+            'laporan_pergerakan_stok_mingguan_' . time() . '.xlsx'
+        );
     }
 
     public function render()

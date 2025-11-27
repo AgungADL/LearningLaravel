@@ -41,7 +41,7 @@
                     <x-icon name="{{ Request::is('*/categories') ? 'heroicon-s-square-3-stack-3d' : 'heroicon-o-square-3-stack-3d' }}" class="w-5 h-5 mr-3" />
                     Kelola Kategori
                 </a>
-                <a href="{{ route('admin.reports.sales') }}" class="flex items-center p-3 rounded-lg hover:bg-gray-800 transition duration-150 {{ Request::is('*/reports') ? 'bg-gray-800 font-semibold border border-gray-900' : '' }}">
+                <a href="{{ route('admin.reports.sales') }}" class="flex items-center p-3 rounded-lg hover:bg-gray-800 transition duration-150 {{ Request::is('*/reports/sales') ? 'bg-gray-800 font-semibold border border-gray-900' : '' }}">
                     <x-icon name="{{ Request::is('*/reports/sales') ? 'heroicon-s-chart-bar' : 'heroicon-o-chart-bar'}}" class="w-5 h-5 mr-3" />
                     Laporan Penjualan
                 </a>

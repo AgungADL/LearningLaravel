@@ -318,12 +318,6 @@ class TransactionPointOfSale extends Component
         }
     }
 
-    public function printReceipt()
-    {
-        // Tidak perlu melakukan apa-apa, hanya untuk memicu render
-        // Kita akan gunakan JS di view untuk handle print
-    }
-
     // --- Helper ---
     public function resetPOS($fullReset = true)
     {
